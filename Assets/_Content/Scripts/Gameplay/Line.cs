@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Serialization;
 using Zenject;
 
 [RequireComponent(typeof(LineRenderer))]
@@ -9,7 +10,8 @@ using Zenject;
 [RequireComponent(typeof(Rigidbody2D))]
 public class Line : MonoBehaviour
 {
-    [SerializeField] private LayerMask notDrawLayers;
+    [SerializeField] private LayerMask _notDrawLayers;
+    [SerializeField] private LineRenderer _wrongLine;
     
     private LineRenderer _lineRenderer;
     private EdgeCollider2D _collider;
@@ -75,7 +77,6 @@ public class Line : MonoBehaviour
         Vector2 mousePos = _camera.ScreenToWorldPoint(Input.mousePosition);
         
         if (!CanAppend(mousePos)) return;
-        if (_points.Count > _gameSettings.MaxDrawPoints) return;
 
         _points.Add(mousePos);
  
@@ -101,24 +102,48 @@ public class Line : MonoBehaviour
         }
     }
 
-    private bool CanAppend(Vector2 pos) 
+    private bool CanAppend(Vector2 pos)
     {
+        if (_points.Count > _gameSettings.MaxDrawPoints) return false;
         if (_lineRenderer.positionCount == 0) return true;
 
         Vector2 lastPoint = _lineRenderer.GetPosition(_lineRenderer.positionCount - 1);
         float distance = Vector2.Distance(lastPoint, pos);
-        
-        if (Physics2D.Linecast(lastPoint, pos, notDrawLayers))
+
+        if (Physics2D.Linecast(lastPoint, pos, _notDrawLayers))
         {
             _disableDraw = true;
+            ShowWrongLine(lastPoint, pos);
             return false;
         }
 
-        if (!_disableDraw) return distance > _gameSettings.MinDrawDistance;
+        if (_disableDraw)
+        {
+            ShowWrongLine(lastPoint, pos);
+        }
+        else
+        {
+            return distance > _gameSettings.MinDrawDistance;
+        }
         
-        _disableDraw = false;
-        return distance > _gameSettings.MinDrawDistance && distance < _gameSettings.MinDrawDistance * 2f;
+        if (distance > _gameSettings.MinDrawDistance && distance < _gameSettings.MinDrawDistance * 3f)
+        {
+            _wrongLine.gameObject.SetActive(false);
+            _disableDraw = false;
+            return true;
+        }
 
+        return false;
+    }
+
+    private void ShowWrongLine(Vector2 start, Vector2 end)
+    {
+        if (_points.Count < 2) return;
+        
+        _wrongLine.transform.position = start;
+        _wrongLine.SetPosition(0, start);
+        _wrongLine.SetPosition(1, end);
+        _wrongLine.gameObject.SetActive(true);
     }
 
     private void DrawEnd()
@@ -130,6 +155,7 @@ public class Line : MonoBehaviour
             return;
         }
         
+        _wrongLine.gameObject.SetActive(false);
         _rigidbody.centerOfMass = _massCenter / _collider.points.Length;
         _gameState.DrawEnd();
     }

@@ -1,29 +1,26 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using Zenject;
 
-[RequireComponent(typeof(TMP_Text))]
 public class TimeLeftText : MonoBehaviour
 {
+    [SerializeField] private TMP_Text _timeText;
+    [SerializeField] private Image _fillImage;
+    
     private GameState _gameState;
-    private TMP_Text _timeText;
+    private GameSettings _gameSettings;
 
     [Inject]
-    public void Construct(GameState gameState)
+    public void Construct(GameState gameState, GameSettings gameSettings)
     {
         _gameState = gameState;
-    }
-    
-    private void Awake()
-    {
-        _timeText = GetComponent<TMP_Text>();
+        _gameSettings = gameSettings;
     }
 
     private void Update()
     {
         _timeText.text = ((int)Mathf.Ceil(_gameState.TimeLeft)).ToString();
+        _fillImage.fillAmount = _gameState.TimeLeft / _gameSettings.GameDuration;
     }
 }

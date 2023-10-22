@@ -2,19 +2,20 @@ using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(SpriteRenderer))]
+[RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(ParticleSystem))]
 public class Bomb : Enemy
 {
-    [SerializeField] private Sprite _explosiveSprite;
-
     private Rigidbody2D _rigidbody;
-    private SpriteRenderer _sprite;
+    private Animator _animator;
+    private ParticleSystem _particleSystem;
     private float _explosionTime = 0.075f;
 
     private void Awake()
     {
         _rigidbody = GetComponent<Rigidbody2D>();
-        _sprite = GetComponent<SpriteRenderer>();
+        _animator = GetComponent<Animator>();
+        _particleSystem = GetComponent<ParticleSystem>();
     }
 
     protected override void StartGame()
@@ -39,8 +40,9 @@ public class Bomb : Enemy
 
     private IEnumerator ExplosionCoroutine()
     {
-        _sprite.sprite = _explosiveSprite;
-        yield return new WaitForSeconds(_explosionTime);
+        _particleSystem.Play();
+        _animator.enabled = true;
+        yield return new WaitForSeconds(_animator.GetCurrentAnimatorClipInfo(0).Length);
         gameObject.SetActive(false);
     }
 }
