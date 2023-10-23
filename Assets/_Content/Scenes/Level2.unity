@@ -133,10 +133,6 @@ PrefabInstance:
       value: ScreenBorders
       objectReference: {fileID: 0}
     - target: {fileID: 7309445659462592511, guid: 7fa5f6fcfb7ef4c4c97149e47d5da288, type: 3}
-      propertyPath: m_RootOrder
-      value: -1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7309445659462592511, guid: 7fa5f6fcfb7ef4c4c97149e47d5da288, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -531,7 +527,9 @@ MonoBehaviour:
     gameDuration: 6
     gameEndDuration: 1.5
     minDrawDistance: 0.15
-    maxDrawPoints: 100
+    oneStarLenght: 8
+    twoStarsLenght: 8
+    threeStarLength: 8
   _doges:
   - {fileID: 586496587}
   _camera: {fileID: 519420031}
@@ -2418,6 +2416,10 @@ PrefabInstance:
     - target: {fileID: 8042710496937790339, guid: 29a17d6d101cefe4790a8b47cf610b5a, type: 3}
       propertyPath: m_Name
       value: NavMesh
+      objectReference: {fileID: 0}
+    - target: {fileID: 8042710496937790339, guid: 29a17d6d101cefe4790a8b47cf610b5a, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

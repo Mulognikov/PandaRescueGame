@@ -531,7 +531,9 @@ MonoBehaviour:
     gameDuration: 6
     gameEndDuration: 1.5
     minDrawDistance: 0.15
-    maxDrawPoints: 100
+    oneStarLenght: 12
+    twoStarsLenght: 8
+    threeStarLength: 12
   _doges:
   - {fileID: 586496587}
   _camera: {fileID: 519420031}
@@ -1990,29 +1992,9 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 651031654210114852, guid: c71b9a8e27cb2ff438ef122a362a5e69, type: 3}
-      propertyPath: m_Name
-      value: Fill
-      objectReference: {fileID: 0}
-    - target: {fileID: 651031654210114852, guid: c71b9a8e27cb2ff438ef122a362a5e69, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3252815555943455436, guid: c71b9a8e27cb2ff438ef122a362a5e69, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4227350415630450867, guid: c71b9a8e27cb2ff438ef122a362a5e69, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 4604233519123141221, guid: c71b9a8e27cb2ff438ef122a362a5e69, type: 3}
       propertyPath: m_Name
       value: GameCanvas
-      objectReference: {fileID: 0}
-    - target: {fileID: 4981195868153669536, guid: c71b9a8e27cb2ff438ef122a362a5e69, type: 3}
-      propertyPath: m_Enabled
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7356046665844605363, guid: c71b9a8e27cb2ff438ef122a362a5e69, type: 3}
       propertyPath: m_Pivot.x

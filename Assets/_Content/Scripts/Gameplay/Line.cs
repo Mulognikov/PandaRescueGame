@@ -25,8 +25,9 @@ public class Line : MonoBehaviour
     private NavMeshObstacle[] _obstaclePool;
     private bool _disableDraw = false;
     private Vector2 _massCenter = Vector2.zero;
+    private float _currentLineLength;
 
-    public int DrawLeftPoints => _gameSettings.MaxDrawPoints - _points.Count;
+    public float CurrentLineLength => _currentLineLength;
     
     
     [Inject]
@@ -86,7 +87,12 @@ public class Line : MonoBehaviour
         _collider.points = _points.ToArray();
         _massCenter += mousePos;
 
-        if (_points.Count > 3 && _points.Count < _gameSettings.MaxDrawPoints)
+        if (_points.Count > 1)
+        {
+            _currentLineLength += Vector2.Distance(_points[^1], _points[^2]);
+        }
+
+        if (_points.Count > 3)
         {
             Vector2 lastDirection = _points[^2] - _points[^3];
             float angle = Vector2.SignedAngle(Vector2.right, lastDirection);
@@ -104,7 +110,7 @@ public class Line : MonoBehaviour
 
     private bool CanAppend(Vector2 pos)
     {
-        if (_points.Count > _gameSettings.MaxDrawPoints) return false;
+        if (_currentLineLength >= _gameSettings.MaxLineLength) return false;
         if (_lineRenderer.positionCount == 0) return true;
 
         Vector2 lastPoint = _lineRenderer.GetPosition(_lineRenderer.positionCount - 1);
@@ -126,7 +132,7 @@ public class Line : MonoBehaviour
             return distance > _gameSettings.MinDrawDistance;
         }
         
-        if (distance > _gameSettings.MinDrawDistance && distance < _gameSettings.MinDrawDistance * 3f)
+        if (distance > _gameSettings.MinDrawDistance && distance < 1f)
         {
             _wrongLine.gameObject.SetActive(false);
             _disableDraw = false;
@@ -167,7 +173,7 @@ public class Line : MonoBehaviour
 
     private void CreateObstaclePool()
     {
-        int obstaclesCount = _gameSettings.MaxDrawPoints + 1;
+        int obstaclesCount = (int)(_gameSettings.MaxLineLength / _gameSettings.MinDrawDistance) + 1;
         _obstaclePool = new NavMeshObstacle[obstaclesCount];
         
         for (int i = 0; i < obstaclesCount; i++)

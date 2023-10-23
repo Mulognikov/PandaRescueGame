@@ -644,7 +644,9 @@ MonoBehaviour:
     gameDuration: 6
     gameEndDuration: 1.5
     minDrawDistance: 0.15
-    maxDrawPoints: 100
+    oneStarLenght: 5
+    twoStarsLenght: 5
+    threeStarLength: 5
   _doges:
   - {fileID: 586496587}
   _camera: {fileID: 519420031}

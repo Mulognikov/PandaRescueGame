@@ -7,10 +7,12 @@ using Zenject;
 public class GameInstaller : MonoInstaller
 {
     [SerializeField] private GameSettings _gameSettings;
+    [Space]
     
     [SerializeField] private Survivor[] _doges;
+    [Space]
+    
     [SerializeField] private Camera _camera;
-
     [SerializeField] private Line _line;
     [SerializeField] private NavMeshObstacle _lineObstacle;
     [SerializeField] private Bee _bee;
@@ -34,9 +36,15 @@ public class GameSettings
     [SerializeField] private float gameDuration = 8f;
     [SerializeField] private float gameEndDuration = 2f;
     [SerializeField] private float minDrawDistance = 0.25f;
-    [SerializeField] private int maxDrawPoints = 500;
+    
+    [SerializeField] private float oneStarLenght = 10f;
+    [SerializeField] private float twoStarsLenght = 10f;
+    [SerializeField] private float threeStarLength = 10f;
+    
     public float GameDuration => gameDuration;
     public float GameEndDuration => gameEndDuration;
     public float MinDrawDistance => minDrawDistance;
-    public int MaxDrawPoints => maxDrawPoints;
+    public float MaxLineLength => oneStarLenght + twoStarsLenght + threeStarLength;
+    public float TwoStarsLenght => twoStarsLenght + threeStarLength;
+    public float ThreeStarsLength => threeStarLength;
 }
