@@ -2,67 +2,78 @@ using System;
 using UnityEngine;
 using Zenject;
 
-public class GameState: ITickable
+public class GameState: ITickable, IDisposable, IInitializable
 {
-    public enum GameStateEnum
-    {
-        Draw,
-        Play,
-        Lose,
-        Win
-    }
-    
-    public event Action GameStateChangedEvent;
-    
-    private float _timeLeft;
-    private GameStateEnum _currentGameState;
+    private WritableGameStateModel _stateModel;
     private GameSettings _gameSettings;
+    private Survivor[] _survivors;
+    private Line _line;
+    private GameplayUI _gameplayUI;
 
-    public float TimeLeft => _timeLeft;
-    
-    public GameStateEnum CurrentGameState
+    public GameState(GameStateModel writableStateModel ,GameSettings settings, Survivor[] survivors, Line line, GameplayUI gameplayUI)
     {
-        get => _currentGameState;
-        private set
-        {
-            _currentGameState = value;
-            Debug.Log(value);
-            GameStateChangedEvent?.Invoke();
-        }
-    }
-
-    public GameState(GameSettings settings)
-    {
+        _stateModel = (WritableGameStateModel)writableStateModel;
         _gameSettings = settings;
-        _timeLeft = _gameSettings.GameDuration;
-        CurrentGameState = GameStateEnum.Draw;
-    }
+        _survivors = survivors;
+        _line = line;
+        _gameplayUI = gameplayUI;
 
-    public void DrawEnd()
+        foreach (var s in _survivors)
+        {
+            s.SurvivorHitEvent += SurvivorHit;
+        }
+
+        _line.DrawEndEvent += DrawEnd;
+        _gameplayUI.MenuButtonClickEvent += GameStop;
+    }
+    
+    public void Dispose()
     {
-        if (CurrentGameState == GameStateEnum.Draw) CurrentGameState = GameStateEnum.Play;
+        foreach (var s in _survivors)
+        {
+            s.SurvivorHitEvent -= SurvivorHit;
+        }
+        
+        _line.DrawEndEvent -= DrawEnd;
+        _gameplayUI.MenuButtonClickEvent -= GameStop;
     }
-
-    public void DogeHit()
+    
+    public void Initialize()
     {
-        if (CurrentGameState == GameStateEnum.Play) CurrentGameState = GameStateEnum.Lose;
+        _stateModel.SetTimeLeft(_gameSettings.GameDuration);
+        _stateModel.SetState(GameStateEnum.Draw);
     }
-
+    
     public void Tick()
     {
-        if (CurrentGameState == GameStateEnum.Play)
+        if (_stateModel.CurrentGameState == GameStateEnum.Play)
         {
             UpdateTimeLeft();
         }
     }
 
+    private void DrawEnd()
+    {
+        if (_stateModel.CurrentGameState == GameStateEnum.Draw) _stateModel.SetState(GameStateEnum.Play);
+    }
+
+    private void SurvivorHit()
+    {
+        if (_stateModel.CurrentGameState == GameStateEnum.Play) _stateModel.SetState(GameStateEnum.Lose);
+    }
+
+    private void GameStop()
+    {
+        _stateModel.SetState(GameStateEnum.Lose);
+    }
+
     private void UpdateTimeLeft()
     {
-        _timeLeft -= Time.deltaTime;
-        if (_timeLeft <= 0)
+        _stateModel.SetTimeLeft(_stateModel.TimeLeft - Time.deltaTime);
+        
+        if (_stateModel.TimeLeft <= 0)
         {
-            _timeLeft = 0;
-            CurrentGameState = GameStateEnum.Win;
+            _stateModel.SetState(GameStateEnum.Win);
         }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
@@ -8,6 +9,9 @@ using Zenject;
 [RequireComponent(typeof(Rigidbody2D))]
 public class Bee : Enemy
 {
+    public static event Action BeeSpawnEvent;
+    public static event Action BeeDestroyEvent;
+    
     [SerializeField] private float _directionChangeTime = 0.15f;
     [SerializeField] private float _distanceToStartChangingDirection = 1.5f;
 
@@ -15,24 +19,27 @@ public class Bee : Enemy
     private NavMeshAgent _agent;
     private Rigidbody2D _rigidbody;
     private Transform _pursuedDoge;
+    private SoundController _soundController;
     
     private int _randDirectionMin = -1;
     private int _randDirectionMax = 2;
     private int _changeDirectionChance = 30;
 
     private float _timeLeftToDirectionChange;
-    private Vector3 lastFixedPosition;
+    private Vector3 _lastFixedPosition;
 
     private Coroutine _beeMoveCoroutine;
     
     [Inject]
-    private void Construct(Survivor[] doges)
+    private void Construct(Survivor[] survivors, SoundController soundController)
     {
-        _pursuedDoge = doges[UnityEngine.Random.Range(0, doges.Length)].transform;
+        _pursuedDoge = survivors[UnityEngine.Random.Range(0, survivors.Length)].transform;
+        _soundController = soundController;
     }
     
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         _rigidbody = GetComponent<Rigidbody2D>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
         _agent = GetComponent<NavMeshAgent>();
@@ -41,32 +48,41 @@ public class Bee : Enemy
         _agent.updatePosition = false;
     }
 
+    private void Start()
+    {
+        BeeSpawnEvent?.Invoke();
+    }
+
+    private void OnDestroy()
+    {
+        BeeDestroyEvent?.Invoke();
+    }
+
     private void FixedUpdate()
     {
         FlipSpriteToMoveDirection();
         
-        if (_gameState.CurrentGameState == GameState.GameStateEnum.Play)
+        if (_gameState.CurrentGameState == GameStateEnum.Play)
         {
             Move();
         }
 
-        if (_gameState.CurrentGameState == GameState.GameStateEnum.Lose)
+        if (_gameState.CurrentGameState == GameStateEnum.Lose)
         {
             Move();
         }
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    protected override void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.TryGetComponent(out Survivor doge))
-        {
-            _agent.destination = transform.position - doge.transform.position;
-            _timeLeftToDirectionChange = _directionChangeTime;
-        }
+        base.OnCollisionEnter2D(collision);
         
-        if (collision.gameObject.TryGetComponent(out Rigidbody2D rigidbody))
+        if (collision.gameObject.TryGetComponent(out IBeeKiller _))
         {
-            rigidbody.AddForce((rigidbody.transform.position - transform.position) * HitForce, ForceMode2D.Impulse);
+            _soundController.BeeHitSound();
+            _hitParticle.transform.position = transform.position;
+            _hitParticle.Play();
+            Destroy(gameObject);
         }
     }
 
@@ -82,7 +98,7 @@ public class Bee : Enemy
     {
         _timeLeftToDirectionChange -= Time.fixedDeltaTime;
 
-        if (_agent.hasPath)
+        if (_agent.hasPath && _agent.pathStatus != NavMeshPathStatus.PathInvalid)
         {
             _rigidbody.velocity = _agent.velocity;
         }
@@ -101,9 +117,16 @@ public class Bee : Enemy
         StopCoroutine(_beeMoveCoroutine);
     }
 
+    protected override void SurvivorHit(Survivor survivor, Vector3 hitPosition)
+    {
+        base.SurvivorHit(survivor, hitPosition);
+        _agent.destination = transform.position - survivor.transform.position;
+        _timeLeftToDirectionChange = _directionChangeTime;
+    }
+
     public void StartMove()
     {
-        if (_gameState.CurrentGameState == GameState.GameStateEnum.Play)
+        if (_gameState.CurrentGameState == GameStateEnum.Play)
         {
             _beeMoveCoroutine = StartCoroutine(BeeMoveCoroutine());
         }

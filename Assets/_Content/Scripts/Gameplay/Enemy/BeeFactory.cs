@@ -7,13 +7,13 @@ public class BeeFactory : MonoBehaviour
     [SerializeField] private int _beesCount = 10;
     [SerializeField] private float _spawnDelay = 0.1f;
 
-    private GameState _gameState;
+    private GameStateModel _gameState;
     private DiContainer _diContainer;
     private Bee _beePrefab;
     private Bee[] _beesPool;
 
     [Inject]
-    private void Construct(GameState gameState, DiContainer diContainer, Bee bee)
+    private void Construct(GameStateModel gameState, DiContainer diContainer, Bee bee)
     {
         _gameState = gameState;
         _diContainer = diContainer;
@@ -25,6 +25,16 @@ public class BeeFactory : MonoBehaviour
         Create();
     }
 
+    private void OnEnable()
+    {
+        _gameState.GameStateChangedEvent += OnGameStateChanged;
+    }
+
+    private void OnDisable()
+    {
+        _gameState.GameStateChangedEvent -= OnGameStateChanged;
+    }
+
     private void Create()
     {
         _beesPool = new Bee[_beesCount];
@@ -34,13 +44,11 @@ public class BeeFactory : MonoBehaviour
             _beesPool[i] = _diContainer.InstantiatePrefab(_beePrefab, transform).GetComponent<Bee>();
             _beesPool[i].gameObject.SetActive(false);
         }
-        
-        _gameState.GameStateChangedEvent += OnGameStateChanged;
     }
     
     private void OnGameStateChanged()
     {
-        if (_gameState.CurrentGameState == GameState.GameStateEnum.Play)
+        if (_gameState.CurrentGameState == GameStateEnum.Play)
         {
             StartCoroutine(SpawnBeesCoroutine());
         }

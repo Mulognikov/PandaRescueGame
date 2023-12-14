@@ -1,17 +1,25 @@
 using System.Collections;
 using UnityEngine;
+using Zenject;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(ParticleSystem))]
-public class Bomb : Enemy
+public class Bomb : Enemy, IBeeKiller
 {
+    private SoundController _soundController;
+    
     private Rigidbody2D _rigidbody;
     private Animator _animator;
     private ParticleSystem _particleSystem;
-    private float _explosionTime = 0.075f;
 
-    private void Awake()
+    [Inject]
+    private void Construct(SoundController soundController)
+    {
+        _soundController = soundController;
+    }
+    
+    protected override void Awake()
     {
         _rigidbody = GetComponent<Rigidbody2D>();
         _animator = GetComponent<Animator>();
@@ -28,18 +36,21 @@ public class Bomb : Enemy
         _rigidbody.simulated = false;
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    protected override void SurvivorHit(Survivor survivor, Vector3 hitPosition)
     {
-        if (collision.gameObject.TryGetComponent(out Rigidbody2D rigidbody))
-        {
-            _rigidbody.simulated = false;
-            rigidbody.AddForce((rigidbody.transform.position - transform.position) * HitForce, ForceMode2D.Impulse);
-            StartCoroutine(ExplosionCoroutine());
-        }
+        return;
+    }
+    
+    protected override void RigidbodyHit(Rigidbody2D rigidbody)
+    {
+        base.RigidbodyHit(rigidbody);
+        _rigidbody.simulated = false;
+        StartCoroutine(ExplosionCoroutine());
     }
 
     private IEnumerator ExplosionCoroutine()
     {
+        _soundController.BombSound();
         _particleSystem.Play();
         _animator.enabled = true;
         yield return new WaitForSeconds(_animator.GetCurrentAnimatorClipInfo(0).Length);
